@@ -1,0 +1,193 @@
+<div class="card">
+    <p-toast />
+    <p-toolbar styleClass="mb-4 gap-2">
+        <ng-template pTemplate="left">
+            <p-button
+                severity="success" 
+                label="Добавить пользователя" 
+                icon="pi pi-plus" 
+                class="mr-2" 
+                (onClick)="addNewUser()" />
+        </ng-template>
+
+        <ng-template pTemplate="right">
+            <p-button
+                severity="help" 
+                label="Выйти" 
+                icon="pi pi-sign-out" 
+                (onClick)="logOut()" />
+        </ng-template>
+    </p-toolbar>
+
+    <p-table
+        #dt
+        [value]="(users$ | async) || []" 
+        [rows]="10"
+        [paginator]="true"
+        [globalFilterFields]="['name']"
+        [tableStyle]="{ 'min-width': '75rem' }"
+        [rowHover]="true"
+        dataKey="id"
+        currentPageReportTemplate="Показано с {first} до {last} из {totalRecords} записей"
+        [showCurrentPageReport]="true"
+    >
+        <ng-template pTemplate="caption">
+            <div class="flex align-items-center justify-content-between">
+                <h3 class="m-0">Пользователи</h3>
+                <span class="p-input-icon-left">
+                    <i class="pi pi-search"></i>
+                    <input 
+                        pInputText 
+                        type="text" 
+                        (input)="dt.filterGlobal($any($event.target).value, 'contains')" 
+                        placeholder="Поиск..." />
+                </span>
+            </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+            <tr>
+                <th style="min-width:10rem">
+                    Имя
+                </th>
+                <th style="min-width:10rem">
+                    Роль
+                </th>
+                <th style="min-width:10rem">
+                    Заблокирован
+                </th>
+                <th></th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-user>
+            <tr>
+                <td>
+                    {{ user.name }}
+                </td>
+                <td>
+                    {{ user.role }}
+                </td>
+                <td>
+                    <p-selectButton 
+                        [disabled]="(userId$ | async) === user.id"
+                        id="isblocked" 
+                        [options]="[{ label: 'Да', value: true },{ label: 'Нет', value: false }]" 
+                        [(ngModel)]="user.isBlocked" 
+                        optionLabel="label" 
+                        optionValue="value" 
+                        (onOptionClick)="blockUser($event, user)"/>
+                </td>
+                <td>
+                    <p-button 
+                        icon="pi pi-pencil" 
+                        class="mr-2" 
+                        [rounded]="true" 
+                        [outlined]="true" 
+                        severity="success" 
+                        (onClick)="editUser(user)" />
+                    <p-button 
+                        [disabled]="(userId$ | async) === user.id"
+                        icon="pi pi-trash" 
+                        severity="danger" 
+                        [rounded]="true" 
+                        [outlined]="true" 
+                        (onClick)="deleteUser(user)" />
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="summary">
+            <div class="flex align-items-center justify-content-between">
+                <ng-container *ngIf="users$ | async as users">
+                    Количество пользователей всего: {{ users.length }}
+                </ng-container>
+            </div>
+        </ng-template>
+    </p-table>
+
+    <p-dialog 
+        [(visible)]="userDialog" 
+        [style]="{ width: '450px' }" 
+        header="Редактирование категории" 
+        [modal]="true" 
+        styleClass="p-fluid">
+            <ng-template pTemplate="content">
+                <div class="field">
+                    <label for="name">Имя</label>
+                    <input 
+                        [disabled]="user.id"
+                        type="text" 
+                        pInputText 
+                        id="name" 
+                        [(ngModel)]="user.name"  
+                        required 
+                        autofocus />
+                    <small class="p-error" *ngIf="userSubmitted && !user.name">
+                        Имя обязательно.
+                    </small>
+                </div>
+
+                <div class="field">
+                    <label for="password">Пароль</label>
+                    <input 
+                        type="text" 
+                        pInputText 
+                        id="password" 
+                        [(ngModel)]="password"  
+                        required 
+                        autofocus />
+                    <small class="p-error" *ngIf="userSubmitted && !password">
+                        Пароль обязателен.
+                    </small>
+                </div>
+
+                <div class="field">
+                    <label class="mb-3">Роли</label>
+                    <div class="formgrid grid">
+                        <div class="field-radiobutton col-6">
+                            <p-radioButton 
+                                [disabled]="(userId$ | async) === user.id"
+                                id="role1" 
+                                name="category" 
+                                value="Admin"  
+                                [(ngModel)]="user.role" />
+                            <label for="role1">Администратор</label>
+                        </div>
+                        <div class="field-radiobutton col-6">
+                            <p-radioButton 
+                                [disabled]="(userId$ | async) === user.id"
+                                id="role2" 
+                                name="category" 
+                                value="User" 
+                                [(ngModel)]="user.role" />
+                            <label for="role2">Простой пользователь</label>
+                        </div>
+                        <div class="field-radiobutton col-6">
+                            <p-radioButton 
+                                [disabled]="(userId$ | async) === user.id"
+                                id="role3" 
+                                name="category" 
+                                value="SuperUser" 
+                                [(ngModel)]="user.role" />
+                            <label for="role3">Продвинутый пользователь</label>
+                        </div>
+
+                    </div>
+                </div>
+            </ng-template>
+
+            <ng-template pTemplate="footer">
+                <p-button 
+                    label="Отмена" 
+                    icon="pi pi-times" 
+                    [text]="true" 
+                    (onClick)="hideUserDialog()" />
+                <p-button
+                    label="Сохранить" 
+                    icon="pi pi-check" 
+                    [text]="true" 
+                    [disabled]="!user.name || !user.role || !password"  
+                    (onClick)="saveUser()" />
+            </ng-template>
+    </p-dialog>
+
+    <p-confirmDialog [style]="{ width: '450px' }" />
+</div>

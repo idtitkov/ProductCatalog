@@ -1,0 +1,28 @@
+<div class="login-container">
+  <h2 class="text-center">Вход в систему</h2>
+  <form #loginForm="ngForm" (ngSubmit)="onSubmit(loginForm)" class="p-fluid">
+    <div class="field">
+      <label for="username">Имя пользователя</label>
+      <input type="text" pInputText id="username" [(ngModel)]="username" name="username" required
+        placeholder="Введите имя пользователя" />
+      <div *ngIf="loginForm.controls['username']?.invalid && loginForm.controls['username']?.touched" class="error">
+        Имя пользователя обязательно
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="password">Пароль</label>
+      <input type="password" pInputText id="password" [(ngModel)]="password" name="password" required
+        placeholder="Введите пароль" />
+      <div *ngIf="loginForm.controls['password']?.invalid && loginForm.controls['password']?.touched" class="error">
+        Пароль должен содержать минимум 1 символ
+      </div>
+    </div>
+
+    <button pButton type="submit" label="Войти" [disabled]="loginForm.invalid || (loading$ | async)"
+      class="p-button-primary"></button>
+
+    <div *ngIf="loading$ | async" class="loading">Загрузка...</div>
+    <div *ngIf="error$ | async as error" class="error">{{ error }}</div>
+  </form>
+</div>
