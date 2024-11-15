@@ -16,8 +16,9 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day) 
+            .MinimumLevel.Information()
+            .WriteTo.Console()
+            .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
             .CreateLogger();
         builder.Services.AddSerilog();
 
@@ -79,7 +80,7 @@ public class Program
 
         await SeedDatabaseAsync(app);
 
-        app.UseSerilogRequestLogging();
+        //app.UseSerilogRequestLogging();
 
         app.UseDefaultFiles();
         app.UseStaticFiles();
